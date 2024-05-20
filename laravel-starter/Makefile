@@ -13,3 +13,6 @@ stop:
 
 down:
 	docker compose down
+
+migrate-fresh:
+	docker compose exec -it app php artisan migrate:fresh --seed

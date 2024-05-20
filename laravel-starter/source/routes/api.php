@@ -1,9 +1,13 @@
 <?php
 
+use App\Controllers\API\UserController;
 use Illuminate\Support\Facades\Route;
 
-// Define routes here...
+/**
+ * Use this file to define new API routes under the /api/... path
+ * 
+ * Here are some example, user related endpoints we have established as an example
+ */
 
-Route::get('/test', function () {
-    return 'This is a route.';
-});
+Route::get('/users/{id}', [UserController::class, 'read']);
+Route::post('/users', [UserController::class, 'create']);

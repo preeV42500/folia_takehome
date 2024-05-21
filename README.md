@@ -1,3 +1,5 @@
 # Folia Backend Challenge
 
-Please read the #[assignment](ASSIGNMENT.md) here to get started!
+Clone this repository to start your project.
+
+Once cloned, feel free to head to the [assignment](ASSIGNMENT.md) description to get started!

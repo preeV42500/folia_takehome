@@ -10,6 +10,7 @@ We are looking for you to think through and implement the modifications and addi
 
 - There is no entrypoint for the application at the moment. We are looking for you to add a way to create and view scheduled reminders, preferrably over HTTP.
 - We have provided a Laravel starter project as this is the framework we use at the moment. You are not required to use Laravel or PHP for this project.
+  - To get started with the laravel project, head [here](LARAVEL-STARTER.md)
 - There is no particular structure required for this project. Make the changes and additions that you feel best fit the project.
 
 Please limit the time you spend working on this project to 4 hours. We are not expecting a complete solution and are interested to see how you prioritise your implementation given the time constraint. Anything that you were not able to get to can be documented in a new file named `TODO.md` to outline the additional changes you would have made with more time on task.
@@ -20,14 +21,4 @@ As you work on your solution, you may think of questions that we are not able to
 
 ## Laravel Starter
 
-If you decide to use our provided laravel starter project, here are a couple details that may help you get up and running:
-
-- Define any HTTP routes you intend to use inside of the `routes/api.php` file. You do not need to worry about user authentication and access
-- We have provided a makefile that defines the following actions:
-| command    | Description                                                       |
-|------------|-------------------------------------------------------------------|
-| make build | Build the images defined in the compose file provided             |
-| make up    | Starts the docker containers defined in the compose file provided |
-| make stop  | Stops the containers defined in the compose file provided         |
-| make down  | Removes the containers defined in the compose file provided       |
-- The application will run at `http://localhost:8080`
+To get started with the laravel project, head [here](LARAVEL-STARTER.md).

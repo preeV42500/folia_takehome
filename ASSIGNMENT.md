@@ -17,12 +17,6 @@ The following minimum functionality should be included:
 - Search for reminders based on a keyword
 - Allow for multiple types of recurrence rules, for example “every day”, “every n days”, and “every Monday”
 
-## Questions
-
-As you work on your solution, you may think of questions that we are not able to answer in real time. Please add these questions to a new file named `QUESTIONS.md` and submit with your solution. Even though we will not be able to answer these questions prior to submission, they will help us frame & evaluate your solution.
-
-Please limit the time you spend working on this project to 4 hours. We are not expecting a complete solution and are interested to see how you prioritise your implementation given the time constraint. Anything that you were not able to get to can be documented in a new file named `TODO.md` to outline the additional changes you would have made with more time on task.
-
 ## Starter Project
 
 We have provided a very simple Laravel starter application for this project if you choose to use it, housed inside of the `/laravel-starter` directory.

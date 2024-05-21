@@ -2,18 +2,7 @@
 
 ## Getting Started
 
-NOTE(petervirtue) - Which method do we want candidates to use?
-
-**OPTION ONE**
-
-To get started with this project, please clone the repository and create a new branch off of `master` that follows the following conventions: `{last name}-{first name}`. When you have completed your submission, push your branch up to the remote and create a new pull request pointed at `master`.
-
-**OPTION TWO**
-
-To get started with this project, please fork the repository and start your work there. When you have completed your submission, please send us an email containing the following information:
-
-- A link to the forked repository
-- The branch to use for reviewing your work
+To get started with this project, clone this repository to your machine and check out the assignment prompt. Once you are ready to submit your project, please create a new hosted git repository (GitHub is preferred) containing your submission and send us the link
 
 ## Assignment Prompt
 

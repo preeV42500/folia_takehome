@@ -19,11 +19,11 @@ The following minimum functionality should be included:
 
 ## Starter Project
 
-We have provided a very simple Laravel starter application for this project if you choose to use it, housed inside of the `/laravel-starter` directory.
+We have provided a simple Laravel starter application for this project, housed inside of the laravel-starter directory of the provided repository.
 
-- This project defines a docker-compose stack consisting of two containers: one running the application, and the other running a web server (NGINX)
-- The database is handled through an SQLite file (created in the Setup section)
-- HTTP Routes for the project can be defined in the source/routes/api.php file
-- We have provided a very simple User model class along with some endpoints for fetching & creating new users. These files can be found in the source/app/Models and source/app/Controllers directories respectively.
+- You can modify the source code of the project directly in the `laravel-starter/source` directory. The `Setup` section also provides instructions for creating a sqlite database.
+- When running, the starter project runs inside a docker container and is served at `http://localhost:8080`. Changes in the source directory should sync and be reflected immediately.
+- HTTP Routes for the project can be defined in the `source/routes/api.php` file
+- We have provided an example User model and endpoints to help you get started. Relevant files can be found under `source/app/Models` and `source/app/Controllers`
 
 To get started / up and running with the laravel starter project, head [here](LARAVEL-STARTER.md).

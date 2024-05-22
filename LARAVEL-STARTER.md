@@ -15,8 +15,10 @@ Our goal with this project is to assess your application development & problem s
 - Navigate one level down into the `folia-backend-project/laravel-starter` directory. This will be the base directory for the application.
 - Create the SQLite database file by running the following: `touch source/database/database.sqlite`
 - Run the following command to build & start the application container & NGINX server: `make up`
-  - If you're curious, more on makefiles [here](https://www.gnu.org/software/make/manual/make.html#Introduction)
-- If the build & start go as expected, you should now have the application running on your local machine at the address `http://localhost:8080`. This project will primarily work with API routes, so `http://localhost:8080/api` will more likely than not be the base URL for many or all of your routes.
+  - This may take a few minutes the first time you run it.
+- If the build & start go as expected, you should now have the application running on your local machine at the address `http://localhost:8080`
+  - Open this address in a browser to see a hello world message.
+  - This project will primarily work with API routes, so `http://localhost:8080/api` will likely be the base URL for many or all of your routes.
 - Run `make migrate-fresh` to run our example stack of database migrations and seeds
   - This command will wipe the database, generate new database tables as they are defined in migration files, and seed test data rows in that order.
   - You do not need to use Laravel migrations and seeds for this project, however it may be helpful if you are comfortable extending them.
@@ -32,3 +34,5 @@ Here are all of the commands we have defined for you in the `Makefile` in an eff
 | make stop          | Stops the containers defined in the compose file provided         |
 | make down          | Removes the containers defined in the compose file provided       |
 | make migrate-fresh | Runs `php artisan migrate:fresh --seed` on the application db     |
+
+**For more information on makefiles, see [this link](https://www.gnu.org/software/make/manual/make.html#Introduction)

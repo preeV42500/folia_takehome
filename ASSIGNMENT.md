@@ -1,33 +1,29 @@
-# Reminder Scheduling
+# Overview
 
-## Scenario
+You are tasked with building the backend of a simple reminders application. Front-end web and mobile applications will interact with your backend to allow users to schedule new reminders, view existing reminders, and modify/delete existing reminders. Reminders will be set up on a recurring basis - for example, “Wake up: every morning at 8am”, or “Lunch meeting: every Monday at 12:30pm”.
 
-A colleague of yours started working on a new application that allows users to schedule different types of reminders. The aim of this application is to provide users the ability to see their upcoming reminders for a provided date range. Your colleague has gone out on leave about halfway through the project, handing off the responsibility of finishing the project to you. While they did not leave you any syntax errors, you notice that there is no entrypoint to the project in it's current state, rather just class files that are not called from anywhere.
+## Requirements
 
-## Assignment
+The structure of your application should include:
 
-We are looking for you to think through and implement the modifications and additions required to solve the problem:
+- A domain model for representing reminders and their recurrence rules
+- A RESTful web service for use by front-end applications
+- A mechanism for persisting and querying these structures (see starter project notes)
 
-- There is no entrypoint for the application at the moment. We are looking for you to add a way to create and view scheduled reminders, preferrably over HTTP.
-- We have provided a Laravel starter project as this is the framework we use at the moment. You are not required to use Laravel or PHP for this project.
-- There is no particular structure required for this project. Make the changes and additions that you feel best fit the project.
+The following minimum functionality should be included:
 
-Please limit the time you spend working on this project to 4 hours. We are not expecting a complete solution and are interested to see how you prioritise your implementation given the time constraint. Anything that you were not able to get to can be documented in a new file named `TODO.md` to outline the additional changes you would have made with more time on task.
+- Create, update, and delete reminders and their recurrence rules
+- View a list of reminders that will occur in a given date range, based on their recurrence rules
+- Search for reminders based on a keyword
+- Allow for multiple types of recurrence rules, for example “every day”, “every n days”, and “every Monday”
 
-## Questions
+## Starter Project
 
-As you work on your solution, you may think of questions that we are not able to answer in real time. Please add these questions to a new file named `QUESTIONS.md` and submit with your solution. Even though we will not be able to answer these questions prior to submission, they will help us frame & evaluate your solution.
+We have provided a very simple Laravel starter application for this project if you choose to use it, housed inside of the `/laravel-starter` directory.
 
-## Laravel Starter
+- This project defines a docker-compose stack consisting of two containers: one running the application, and the other running a web server (NGINX)
+- The database is handled through an SQLite file (created in the Setup section)
+- HTTP Routes for the project can be defined in the source/routes/api.php file
+- We have provided a very simple User model class along with some endpoints for fetching & creating new users. These files can be found in the source/app/Models and source/app/Controllers directories respectively.
 
-If you decide to use our provided laravel starter project, here are a couple details that may help you get up and running:
-
-- Define any HTTP routes you intend to use inside of the `routes/api.php` file. You do not need to worry about user authentication and access
-- We have provided a makefile that defines the following actions:
-| command    | Description                                                       |
-|------------|-------------------------------------------------------------------|
-| make build | Build the images defined in the compose file provided             |
-| make up    | Starts the docker containers defined in the compose file provided |
-| make stop  | Stops the containers defined in the compose file provided         |
-| make down  | Removes the containers defined in the compose file provided       |
-- The application will run at `http://localhost:8080`
+To get started / up and running with the laravel starter project, head [here](LARAVEL-STARTER.md).

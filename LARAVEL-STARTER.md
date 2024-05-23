@@ -16,12 +16,11 @@ Our goal with this project is to assess your application development & problem s
 - Create the SQLite database file by running the following: `touch source/database/database.sqlite`
 - Run the following command to build & start the application container & NGINX server: `make up`
   - This may take a few minutes the first time you run it.
+- Run `make migrate-fresh` to run our example stack of database migrations and seeds
+  - This command will wipe the database, generate new database tables as they are defined in migration files, and seed test data rows in that order.
 - If the build & start go as expected, you should now have the application running on your local machine at the address `http://localhost:8080`
   - Open this address in a browser to see a hello world message.
   - This project will primarily work with API routes, so `http://localhost:8080/api` will likely be the base URL for many or all of your routes.
-- Run `make migrate-fresh` to run our example stack of database migrations and seeds
-  - This command will wipe the database, generate new database tables as they are defined in migration files, and seed test data rows in that order.
-  - You do not need to use Laravel migrations and seeds for this project, however it may be helpful if you are comfortable extending them.
 
 ### Makefile reference
 

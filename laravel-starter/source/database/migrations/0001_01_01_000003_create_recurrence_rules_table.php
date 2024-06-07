@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('recurrence_rules', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('reminder_id');
-            $table->enum('type', ['daily', 'weekly', 'monthly', 'yearly', 'custom']);
+            $table->string('type');
             $table->integer('frequency');
             $table->date('start_date');
             $table->date('end_date')->nullable();

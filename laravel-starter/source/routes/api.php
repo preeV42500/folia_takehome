@@ -25,12 +25,12 @@ Route::get('reminders/search', [ReminderController::class, 'getByKeyword']);
 Route::get('reminders/date-range', [ReminderController::class, 'getByDateRange']);
 
 // create reminder
-Route::post('/reminders', [ReminderController::class, 'create'])
+Route::post('/reminders', [ReminderController::class, 'create']);
 
 // update reminder 
-Route::put('/reminders/{id}', [ReminderController::class, 'update'])
+Route::put('/reminders/{id}', [ReminderController::class, 'update']);
 
 // delete reminder 
-Route::delete('/reminders/{id}', [ReminderController::class, 'delete'])
+Route::delete('/reminders/{id}', [ReminderController::class, 'delete']);
 
 

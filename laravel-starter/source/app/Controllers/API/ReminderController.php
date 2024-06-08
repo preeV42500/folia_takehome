@@ -1,28 +1,30 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Controllers\API;
+use App\Controllers\Controller;
 use App\Models\Reminder;
+use App\Rules\FrequencyValidationRule;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ReminderController extends Controller
 {
    
-    public function index(): Response 
+    public function index(): JsonResponse 
     {
         $reminders = Reminder::with('recurrenceRules', 'keywords')->get();
         return response()->json($reminders, 200);
     }
     
-    public function read(string $id): Response 
+    public function read(string $id): JsonResponse 
     {
         $reminder = Reminder::findOrFail($id)->with('recurrenceRules', 'keywords')->get();
         return response()->json($reminder, 200);
     }
 
     // Get all reminders by user_id 
-    public function getByUserId(string $user_id): Response 
+    public function getByUserId(string $user_id): JsonResponse 
     {
         $reminders = Reminder::where('user_id', $user_id)->with('recurrenceRules', 'keywords')->get();
         return response()->json($reminders, 200);
@@ -30,7 +32,7 @@ class ReminderController extends Controller
 
     // Search reminders by keyword.
   
-    public function getByKeyword(Request $request): Response 
+    public function getByKeyword(Request $request): JsonResponse 
     {
         $validatedData = $request->validate([
             'keyword' => 'required|string',
@@ -73,8 +75,12 @@ class ReminderController extends Controller
             'start_time' => 'required|datetime',
             'end_time' => 'nullable|datetime|after:start_time',
             'recurrence_rules' => 'array', 
-            'recurrence_rules.*.type' => 'required|in:daily,weekly,monthly,yearly,custom',
-            'recurrence_rules.*.frequency' => 'required|integer', 
+            'recurrence_rules.*.type' => 'required|string|in:daily,weekly,monthly,yearly,custom',
+            'recurrence_rules.*.frequency' => [
+                'required',
+                'integer',
+                new FrequencyValidationRule($request->input('recurrence_rules.*.type')),
+            ], 
             'recurrence_rules.*.start_date' => 'required|date_format:m/d/Y', 
             'recurrence_rules.*.end_date' => 'nullable|date_format:m/d/Y|after_or_equal:start_date',
         ]);
@@ -86,7 +92,7 @@ class ReminderController extends Controller
             $validatedData['recurrence_rules'][$i]['reminder_id'] = $reminder->id;
         }
 
-        if (isset($validatedData['recurrence_rules'] && !empty($validatedData['recurrence_rules'])) {
+        if (isset($validatedData['recurrence_rules']) && !empty($validatedData['recurrence_rules'])) {
             $reminder->recurrenceRules()->createMany($validatedData['recurrence_rules']);
         } 
 
@@ -109,7 +115,11 @@ class ReminderController extends Controller
             'end_time' => 'nullable|datetime|after:start_time',
             'recurrence_rules' => 'array', 
             'recurrence_rules.*.type' => 'required|in:daily,weekly,monthly,yearly,custom',
-            'recurrence_rules.*.frequency' => 'required|integer', 
+            'recurrence_rules.*.frequency' => [
+                'required',
+                'integer',
+                new FrequencyValidationRule($request->input('recurrence_rules.*.type')),
+            ], 
             'recurrence_rules.*.start_date' => 'required|date_format:m/d/Y', 
             'recurrence_rules.*.end_date' => 'nullable|date_format:m/d/Y|after_or_equal:start_date',
         ]);
@@ -143,21 +153,20 @@ class ReminderController extends Controller
         $reminder = Reminder::findOrFail($id);
         $reminder->delete();
 
-        return response()->json({'message': 'Reminder deleted successfully'}, 200);
+        return response()->json(['message' => 'Reminder deleted successfully'], 200);
     }
 
-    protected function generateKeywordsHelper(reminder_title, reminder_id)
+    protected function generateKeywordsHelper($reminder_title, $reminder_id): array
     {
-        function nonArticleWord($var)
-        {
+        function nonArticleWord($var) {
             // returns whether the input word is not an article word (common words such as the, an, and etc)
             $filler_words = array('the', 'a', 'an', 'and');
             return !in_array($var, $filler_words);           
         } 
 
-        $keywords = array_filter(explode(" ", reminder_title), "nonArticleWord");
+        $keywords = array_filter(explode(" ", $reminder_title), "nonArticleWord");
         for ($i = 0; $i < $keywords.length; $i++) {
-            $keywords[$i]['reminder_id'] = reminder_id;
+            $keywords[$i]['reminder_id'] = $reminder_id;
         }
 
         return $keywords;

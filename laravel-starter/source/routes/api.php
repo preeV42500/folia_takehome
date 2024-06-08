@@ -1,6 +1,7 @@
 <?php
 
 use App\Controllers\API\UserController;
+use App\Controllers\API\ReminderController;
 use Illuminate\Support\Facades\Route;
 
 /**

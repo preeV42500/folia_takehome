@@ -20,8 +20,8 @@ class ReminderController extends Controller
     
     public function read(string $id): JsonResponse 
     {
-        $reminder = Reminder::findOrFail($id)->with('recurrenceRules', 'keywords')->get();
-        return response()->json($reminder, 200);
+        $reminder = Reminder::findOrFail($id);
+        return response()->json($reminder->load('recurrenceRules', 'keywords'), 200);
     }
 
     // Get all reminders by user_id 
@@ -35,11 +35,10 @@ class ReminderController extends Controller
   
     public function getByKeyword(Request $request): JsonResponse 
     {
-        $validatedData = $request->validate([
+        $validator = Validator::make($request->query(), [
             'keyword' => 'required|string',
         ]);
-
-        $reminders = Reminder::where('title', 'like', '%' . $validatedData['keyword'] . '%')->get();
+        $reminders = Reminder::where('title', 'like', '%' . $request->keyword . '%')->get();
        
         return response()->json($reminders, 200);
     }
@@ -50,21 +49,29 @@ class ReminderController extends Controller
     public function getRemindersForDateRange(Request $request): JsonResponse 
     {
         // Validate that start_date and end_date are valid and end_date is greater than or equal to start_date
-        $validatedData = $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+        $validator = Validator::make($request->query(), [
+            'start_date' => 'required|date_format:Y-m-d',
+            'end_date' => 'required|date_format:Y-m-d|after_or_equal:start_date',
         ]);
 
-        $startDate = Carbon::parse($validatedData['start_date']);
-        $endDate = Carbon::parse($validatedData['end_date']);
+        // Check if validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'input validation error',
+                'errors' => $validator->errors()
+            ], 400);
+        }
 
-        $reminders = Reminder::with('recurrenceRules')
+        $startDate = Carbon::parse($request->start_date);
+        $endDate = Carbon::parse($request->end_date);
+
+        $remindersInDateRange = Reminder::with('recurrenceRules')
             ->get()
-            ->filter(function ($reminder) use ($startDate, $endDate) {
-                return $reminder->isReminderInDateRange($startDate, $endDate);
+            ->map(function ($reminder) use ($startDate, $endDate) {
+                return $reminder->getRemindersInDateRange($startDate, $endDate);
             });
 
-        return response()->json($reminders, 200);
+        return response()->json($remindersInDateRange, 200);
     }
 
     // create a new reminder with recurrence rules and keywords 
@@ -90,7 +97,7 @@ class ReminderController extends Controller
                 },
             ], 
             'recurrence_rules.*.start_date' => 'required|date_format:m/d/Y', 
-            'recurrence_rules.*.end_date' => 'nullable|date_format:m/d/Y|after_or_equal:start_date',
+            'recurrence_rules.*.end_date' => 'nullable|date_format:m/d/Y|after_or_equal:start_date'
         ]);
 
         if ($validator->fails()) {
@@ -137,6 +144,7 @@ class ReminderController extends Controller
 
         return response()->json($reminder->load('recurrenceRules', 'keywords'), 201);
     }
+
 
     // Update reminder by id 
     public function update(Request $request, string $id): JsonResponse 
@@ -230,7 +238,7 @@ class ReminderController extends Controller
         $keywords = array_filter(explode(" ", $reminder_title), function($var) {
             // returns whether the input word is not an article word (common words such as the, an, and etc)
             $filler_words = array('the', 'a', 'an', 'and');
-            return !in_array($var, $filler_words);           
+            return !in_array(strtolower($var), $filler_words);           
         });
         
         return array_map(function ($keyword) use ($reminder_id) {

@@ -7,6 +7,7 @@ use App\Rules\FrequencyValidationRule;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ReminderController extends Controller
 {
@@ -46,7 +47,7 @@ class ReminderController extends Controller
     
     // Get reminders for a given date range based on their recurrence rules.
 
-    public function getRemindersForDateRange(Request $request): Response 
+    public function getRemindersForDateRange(Request $request): JsonResponse 
     {
         // Validate that start_date and end_date are valid and end_date is greater than or equal to start_date
         $validatedData = $request->validate([
@@ -67,34 +68,65 @@ class ReminderController extends Controller
     }
 
     // create a new reminder with recurrence rules and keywords 
-    public function create(Request $request): Response 
+    public function create(Request $request): JsonResponse 
     {
-        $validatedData = $request->validate([
+        $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
             'title' => 'required|string|min:1|max:255',
-            'start_time' => 'required|datetime',
-            'end_time' => 'nullable|datetime|after:start_time',
-            'recurrence_rules' => 'array', 
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+            'recurrence_rules' => 'nullable|array', 
             'recurrence_rules.*.type' => 'required|string|in:daily,weekly,monthly,yearly,custom',
             'recurrence_rules.*.frequency' => [
                 'required',
                 'integer',
-                new FrequencyValidationRule($request->input('recurrence_rules.*.type')),
+                function ($attribute, $value, $fail) use ($request) {
+                    $index = explode('.', $attribute)[1];
+                    $type = $request->input("recurrence_rules.$index.type");
+                    $rule = new FrequencyValidationRule($type); 
+                    if (!$rule->passes($attribute, $value)) { // if validation doesn't pass, return specific error msg
+                        $fail($rule->message());
+                    }
+                },
             ], 
             'recurrence_rules.*.start_date' => 'required|date_format:m/d/Y', 
             'recurrence_rules.*.end_date' => 'nullable|date_format:m/d/Y|after_or_equal:start_date',
         ]);
-    
-        $reminder = Reminder::create($validatedData['user_id'], $validatedData['title'], $validatedData['start_time'], $validatedData['end_time']);
-        
-        
-        for ($i = 0; $i < $validatedData['recurrence_rules'].length; $i++) {
-            $validatedData['recurrence_rules'][$i]['reminder_id'] = $reminder->id;
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'input validation error',
+                'errors' => $validator->errors()
+            ], 400);
         }
 
-        if (isset($validatedData['recurrence_rules']) && !empty($validatedData['recurrence_rules'])) {
-            $reminder->recurrenceRules()->createMany($validatedData['recurrence_rules']);
-        } 
+        $createData = [
+            'user_id' => $request->user_id, 
+            'title' => $request->title, 
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time
+        ];
+        
+        $reminder = Reminder::create($createData);
+        
+        $recurrences = $request->recurrence_rules;
+        if (isset($recurrences) && !empty($recurrences)) {
+            for ($i = 0; $i < count($recurrences); $i++) {
+                $recurrences[$i]['reminder_id'] = $reminder->id;
+            }
+            $reminder->recurrenceRules()->createMany($recurrences);
+        } else {
+            // if no recurrence rules were given, create one-time occurrence based on the created_at date of the reminder 
+            // (since any reminder will occur at least once)
+            $startAndEndDate = Carbon::parse($reminder->created_at);
+            $reminder->recurrenceRules()->create([
+                'reminder_id' => $reminder->id,
+                'type' => 'daily',
+                'frequency' => 1,
+                'start_date' => $startAndEndDate,
+                'end_date' => $startAndEndDate
+            ]); 
+        }
 
         // parse keywords from title and create keyword entries in db
         $keywords = $this->generateKeywordsHelper($reminder->title, $reminder->id);
@@ -103,52 +135,89 @@ class ReminderController extends Controller
             $reminder->keywords()->createMany($keywords);
         }
 
-        return response()->json($reminder->load('recurrenceRules'), 201);
+        return response()->json($reminder->load('recurrenceRules', 'keywords'), 201);
     }
 
     // Update reminder by id 
-    public function update(Request $request, string $id): Response 
+    public function update(Request $request, string $id): JsonResponse 
     {
-        $validatedData = $request->validate([
+        $validator = Validator::make($request->all(), [
             'title' => 'required|string|min:1|max:255',
-            'start_time' => 'required|datetime',
-            'end_time' => 'nullable|datetime|after:start_time',
-            'recurrence_rules' => 'array', 
-            'recurrence_rules.*.type' => 'required|in:daily,weekly,monthly,yearly,custom',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+            'recurrence_rules' => 'nullable|array', 
+            'recurrence_rules.*.type' => 'required|string|in:daily,weekly,monthly,yearly,custom',
             'recurrence_rules.*.frequency' => [
                 'required',
                 'integer',
-                new FrequencyValidationRule($request->input('recurrence_rules.*.type')),
+                function ($attribute, $value, $fail) use ($request) {
+                    $index = explode('.', $attribute)[1];
+                    $type = $request->input("recurrence_rules.$index.type");
+                    $rule = new FrequencyValidationRule($type); 
+                    if (!$rule->passes($attribute, $value)) { // if validation doesn't pass, return specific error msg
+                        $fail($rule->message());
+                    }
+                },
             ], 
             'recurrence_rules.*.start_date' => 'required|date_format:m/d/Y', 
             'recurrence_rules.*.end_date' => 'nullable|date_format:m/d/Y|after_or_equal:start_date',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'input validation error',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $updateData = [ 
+            'title' => $request->title, 
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time
+        ];
+
         $reminder = Reminder::findOrFail($id);
-        $title_before_update = $reminder->title;
-        $reminder->update($validatedData['title'], $validatedData['start_time'], $validatedData['end_time']);
+        $updateData['user_id'] = $reminder->user_id;
+        $titleBeforeUpdate = $reminder->title;
+        $reminder->update($updateData);
 
         // if reminder title has been updated, generate new keywords for new title 
-        if ($title_before_update !== $reminder->title) {
+        if ($titleBeforeUpdate !== $reminder->title) {
             $keywords = $this->generateKeywordsHelper($reminder->title, $reminder->id);
             $reminder->keywords()->delete(); 
             $reminder->keywords()->createMany($keywords); 
         }
 
-        // update recurrence rules 
-        if (isset($validatedData['recurrence_rules'])) {
+        // update recurrence rules - this deletes any existing recurrence rules and replaces them with the new recurrence rules
+        $recurrences = $request->recurrence_rules;
+        if (isset($recurrences) && !empty($recurrences)) {
             $reminder->recurrenceRules()->delete();
-            if (!empty($validatedData['recurrence_rules'])) {
-                $reminder->recurrenceRules()->createMany($validatedData['recurrence_rules']);
+            for ($i = 0; $i < count($recurrences); $i++) {
+                $recurrences[$i]['reminder_id'] = $reminder->id;
             }
+            $reminder->recurrenceRules()->createMany($recurrences);
+            
+        } else if (isset($recurrences) && empty($recurrences)){
+            $reminder->recurrenceRules()->delete();
+            // create the one-time reminder occurence 
+            $startAndEndDate = Carbon::parse($reminder->created_at);
+            $reminder->recurrenceRules()->create([
+                'reminder_id' => $reminder->id,
+                'type' => 'daily',
+                'frequency' => 1,
+                'start_date' => $startAndEndDate,
+                'end_date' => $startAndEndDate
+            ]); 
+            
         }
-
-        return response()->json($reminder->load('recurrenceRules'), 200);
+        
+        return response()->json($reminder->load('recurrenceRules', 'keywords'), 200);
     }
 
 
     // Delete reminder by id 
    
-    public function delete(string $id): Response 
+    public function delete(string $id): JsonResponse 
     {
         $reminder = Reminder::findOrFail($id);
         $reminder->delete();
@@ -158,18 +227,16 @@ class ReminderController extends Controller
 
     protected function generateKeywordsHelper($reminder_title, $reminder_id): array
     {
-        function nonArticleWord($var) {
+        $keywords = array_filter(explode(" ", $reminder_title), function($var) {
             // returns whether the input word is not an article word (common words such as the, an, and etc)
             $filler_words = array('the', 'a', 'an', 'and');
             return !in_array($var, $filler_words);           
-        } 
-
-        $keywords = array_filter(explode(" ", $reminder_title), "nonArticleWord");
-        for ($i = 0; $i < $keywords.length; $i++) {
-            $keywords[$i]['reminder_id'] = $reminder_id;
-        }
-
-        return $keywords;
+        });
+        
+        return array_map(function ($keyword) use ($reminder_id) {
+            return ['keyword' => $keyword, 'reminder_id' => $reminder_id];
+        }, $keywords);
+       
     }
 
 }

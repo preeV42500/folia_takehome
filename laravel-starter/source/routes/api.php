@@ -20,10 +20,10 @@ Route::get('/', [ReminderController::class, 'index']);
 Route::get('reminders/{id}', [ReminderController::class, 'read']);
 
 // search by keyword 
-Route::get('reminders/search', [ReminderController::class, 'getByKeyword']);
+Route::get('search', [ReminderController::class, 'getByKeyword']);
 
 // get reminders based on recurrences within date range 
-Route::get('reminders/date-range', [ReminderController::class, 'getByDateRange']);
+Route::get('date-range', [ReminderController::class, 'getRemindersForDateRange']);
 
 // create reminder
 Route::post('/reminders', [ReminderController::class, 'create']);

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('reminder_id');
             $table->string('keyword');
+            $table->timestamps();
 
             $table->foreign('reminder_id')->references('id')->on('reminders')->onDelete('cascade');
         });

@@ -48,13 +48,13 @@ class FrequencyValidationRule implements Rule
     {
         switch ($this->type) {
             case 'daily':
-                return 'The :attribute must be an integer equal to 1 for the ' . {$this->type} . ' recurrence type.';
+                return "The :attribute must be an integer equal to 1 for the '{$this->type}' recurrence type.";
             case 'weekly':
-                return 'The :attribute must be an integer between 1 and 7 for the ' . {$this->type} . ' recurrence type.';
+                return "The :attribute must be an integer between 1 and 7 for the '{$this->type}' recurrence type.";
             case 'monthly':
-                return 'The :attribute must be an integer between 1 and 31 for the ' . {$this->type} . ' recurrence type.';
+                return "The :attribute must be an integer between 1 and 31 for the '{$this->type}' recurrence type.";
             case 'yearly':
-                return 'The :attribute must be an integer between 1 and 365 for the ' . {$this->type} . ' recurrence type.';
+                return "The :attribute must be an integer between 1 and 365 for the '{$this->type}' recurrence type.";
             default:
                 return 'The :attribute has an invalid value.';
         }

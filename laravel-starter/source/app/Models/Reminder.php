@@ -44,7 +44,6 @@ class Reminder extends Model
     // Get the a list of all the instances where the reminder occurs within the date range, and for a single recurrence rule  
     protected function listOfReminderOccurrences(RecurrenceRule $recurrenceRule, Carbon $startDate, Carbon $endDate): array
     {
-        $doesReminderRepeat = false;
         $recurrenceStartDate = Carbon::parse($recurrenceRule->start_date);
         $recurrenceEndDate = Carbon::parse($recurrenceRule->end_date);
         $currentRecurrenceDate = $recurrenceStartDate;
@@ -61,17 +60,29 @@ class Reminder extends Model
         }
         // while recurrence is within the bounds of its end_date and endDate of search range 
         while($currentRecurrenceDate->lte($endDate) && $currentRecurrenceDate->lte($recurrenceEndDate)) {
-            $occurrences[] = [
-                'reminder_id' => $recurrenceRule->reminder_id,
-                'title' => $recurrenceRule->reminder->title,
-                'date' => $currentRecurrenceDate
-            ];
+            $occurrences[] = $this->generateReminderRepresentation($recurrenceRule, $currentRecurrenceDate);
             $currentRecurrenceDate = $this->getNextRecurrenceDate($recurrenceRule, $currentRecurrenceDate);
+        }
+
+        if ($recurrenceEndDate->lte($endDate)) {
+            $occurrences[] = $this->generateReminderRepresentation($recurrenceRule, $recurrenceEndDate);
         }
       
         return $occurrences;
     }
-   
+    
+    // takes a recurrence rule and a relevant date to generate a representation of a reminder
+    protected function generateReminderRepresentation($recurrenceRule, $dateOfRecurrence): array 
+    {
+        return [
+            'reminder_id' => $recurrenceRule->reminder_id,
+            'title' => $recurrenceRule->reminder->title,
+            'date' => $dateOfRecurrence->copy()->format('Y-m-d'),
+            'start_time' => $recurrenceRule->reminder->start_time->format('g:i A'),
+            'end_time' => $recurrenceRule->reminder->end_time->format('g:i A')
+        ];
+    }
+
     // Use the current date and recurrence rule to get the date of the next recurrence 
     protected function getNextRecurrenceDate(RecurrenceRule $recurrenceRule, Carbon $date): Carbon 
     {
@@ -82,8 +93,12 @@ class Reminder extends Model
             case 'weekly':
                 $dayOfWeek = $recurrenceRule->frequency;
                 $currentDayOfWeek = $date->dayOfWeek;
-                // number of days to 'adjust' current date by to get the day of the week specified by the recurrence rule
-                $daysDiff = ($dayOfWeek - $currentDayOfWeek + 7) % 7;   
+                // if current date is not on the same day of the week specified by the recurrence rule, we need to 
+                // add a number of days to 'adjust' current date to get the correct day of the week 
+                $daysDiff = ($dayOfWeek - $currentDayOfWeek + 7) % 7;
+                if ($dayOfWeek === $currentDayOfWeek) {
+                    $daysDiff = 7;
+                }   
                 return $date->addDays($daysDiff);
 
             case 'monthly':
@@ -91,7 +106,7 @@ class Reminder extends Model
                 // if day of month is less than current date's day, then add a month 
                 // e.g. if the recurrence is on the 14th of a month and the current date is the 15th of the month,
                 // the next recurrence would happen one month later on the 14th of the month
-                if ($dayOfMonth < $date->day()) {
+                if ($dayOfMonth <= $date->day) {
                     $date = $date->addMonth();
                 }
                 $nextDate = $date->day($dayOfMonth);
@@ -100,7 +115,7 @@ class Reminder extends Model
             case 'yearly':
                 $dayOfYear = $recurrenceRule->frequency;
                 // if day of year is less than current date's day, then add an year
-                if ($dayOfYear < $date->dayOfYear()) {
+                if ($dayOfYear <= $date->dayOfYear) {
                     $date = $date->addYear();
                 }
                 $nextDate = $date->dayOfYear($dayOfYear);
@@ -123,8 +138,8 @@ class Reminder extends Model
     protected function casts(): array
     {
         return [
-            'start_time' => 'datetime:Y-m-d H:i:s A',
-            'end_time' => 'datetime:Y-m-d H:i:s A',
+            'start_time' => 'datetime:g:i A',
+            'end_time' => 'datetime:g:i A',
         ];
     }
 }

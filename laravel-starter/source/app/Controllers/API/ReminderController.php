@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Validator;
 class ReminderController extends Controller
 {
    
-    public function index(): JsonResponse 
+    public function readAll(): JsonResponse 
     {
         $reminders = Reminder::with('recurrenceRules', 'keywords')->get();
         return response()->json($reminders, 200);
@@ -38,9 +38,16 @@ class ReminderController extends Controller
         $validator = Validator::make($request->query(), [
             'keyword' => 'required|string',
         ]);
+        // Check if validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'input validation error',
+                'errors' => $validator->errors()
+            ], 400);
+        }
         $reminders = Reminder::where('title', 'like', '%' . $request->keyword . '%')->get();
        
-        return response()->json($reminders, 200);
+        return response()->json($reminders->load('recurrenceRules', 'keywords'), 200);
     }
 
     
@@ -67,7 +74,8 @@ class ReminderController extends Controller
 
         $remindersInDateRange = Reminder::with('recurrenceRules')
             ->get()
-            ->map(function ($reminder) use ($startDate, $endDate) {
+            ->flatMap(function ($reminder) use ($startDate, $endDate) {
+                // flatMap to collection containing representation of repeated reminders with their date and time info
                 return $reminder->getRemindersInDateRange($startDate, $endDate);
             });
 
@@ -80,8 +88,8 @@ class ReminderController extends Controller
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
             'title' => 'required|string|min:1|max:255',
-            'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
+            'start_time' => 'required|date_format:g:i A',
+            'end_time' => 'required|date_format:g:i A|after:start_time',
             'recurrence_rules' => 'nullable|array', 
             'recurrence_rules.*.type' => 'required|string|in:daily,weekly,monthly,yearly,custom',
             'recurrence_rules.*.frequency' => [
@@ -96,8 +104,8 @@ class ReminderController extends Controller
                     }
                 },
             ], 
-            'recurrence_rules.*.start_date' => 'required|date_format:m/d/Y', 
-            'recurrence_rules.*.end_date' => 'nullable|date_format:m/d/Y|after_or_equal:start_date'
+            'recurrence_rules.*.start_date' => 'required|date_format:Y-m-d', 
+            'recurrence_rules.*.end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date'
         ]);
 
         if ($validator->fails()) {
@@ -151,8 +159,8 @@ class ReminderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|min:1|max:255',
-            'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
+            'start_time' => 'required|date_format:g:i A',
+            'end_time' => 'required|date_format:g:i A|after:start_time',
             'recurrence_rules' => 'nullable|array', 
             'recurrence_rules.*.type' => 'required|string|in:daily,weekly,monthly,yearly,custom',
             'recurrence_rules.*.frequency' => [
@@ -167,8 +175,8 @@ class ReminderController extends Controller
                     }
                 },
             ], 
-            'recurrence_rules.*.start_date' => 'required|date_format:m/d/Y', 
-            'recurrence_rules.*.end_date' => 'nullable|date_format:m/d/Y|after_or_equal:start_date',
+            'recurrence_rules.*.start_date' => 'required|date_format:Y-m-d', 
+            'recurrence_rules.*.end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
         ]);
 
         if ($validator->fails()) {

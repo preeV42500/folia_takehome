@@ -18,4 +18,17 @@ class RecurrenceRule extends Model
     {
         return $this->belongsTo(Reminder::class);
     }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'datetime:Y-m-d',
+            'end_date' => 'datetime:Y-m-d',
+        ];
+    }
 }

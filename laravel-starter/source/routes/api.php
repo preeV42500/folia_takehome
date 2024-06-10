@@ -16,14 +16,17 @@ Route::post('/users', [UserController::class, 'create']);
 Route::get('/users/{user_id}/reminders', [ReminderController::class, 'getByUserId']);
 // Reminder related routes 
 
-Route::get('/', [ReminderController::class, 'index']);
-Route::get('reminders/{id}', [ReminderController::class, 'read']);
+// get all reminders
+Route::get('/reminders', [ReminderController::class, 'readAll']);
+
+// get reminder by id 
+Route::get('/reminders/{id}', [ReminderController::class, 'read']);
 
 // search by keyword 
-Route::get('search', [ReminderController::class, 'getByKeyword']);
+Route::get('/search', [ReminderController::class, 'getByKeyword']);
 
 // get reminders based on recurrences within date range 
-Route::get('date-range', [ReminderController::class, 'getRemindersForDateRange']);
+Route::get('/date-range', [ReminderController::class, 'getRemindersForDateRange']);
 
 // create reminder
 Route::post('/reminders', [ReminderController::class, 'create']);
